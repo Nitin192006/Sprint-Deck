@@ -31,13 +31,35 @@ object FirebaseSyncService {
     fun initialize(context: Context) {
         if (isFirebaseInitialized) return
         try {
-            // First attempt default initialization configured via google-services.json if present
-            FirebaseApp.initializeApp(context)
-            firestore = FirebaseFirestore.getInstance()
-            isFirebaseInitialized = true
-            Log.d(TAG, "Firebase initialized automatically from google-services.json.")
+            val apiKey = BuildConfig.FIREBASE_API_KEY
+            val appId = BuildConfig.FIREBASE_APP_ID
+            val projectId = BuildConfig.FIREBASE_PROJECT_ID
+
+            // Check if user has provided actual non-mock custom environment variables
+            val hasCustomConfig = apiKey.isNotEmpty() && !apiKey.contains("mock") &&
+                    appId.isNotEmpty() && !appId.contains("1:123456789012") &&
+                    projectId.isNotEmpty() && !projectId.contains("mock")
+
+            if (hasCustomConfig) {
+                Log.i(TAG, "Custom Firebase credentials found in environment. Initializing programmatically...")
+                val options = FirebaseOptions.Builder()
+                    .setApiKey(apiKey)
+                    .setApplicationId(appId)
+                    .setProjectId(projectId)
+                    .build()
+                FirebaseApp.initializeApp(context, options)
+                firestore = FirebaseFirestore.getInstance()
+                isFirebaseInitialized = true
+                Log.d(TAG, "Firebase programmatically initialized using active environment configuration.")
+            } else {
+                Log.d(TAG, "No custom/non-mock environment variables provided. Attempting default auto-init via google-services.json...")
+                FirebaseApp.initializeApp(context)
+                firestore = FirebaseFirestore.getInstance()
+                isFirebaseInitialized = true
+                Log.d(TAG, "Firebase initialized safely from google-services.json.")
+            }
         } catch (e: Exception) {
-            Log.w(TAG, "Default Firebase initialization missed: ${e.message}. Trying custom fallback parameters...")
+            Log.w(TAG, "Standard Firebase initialization missed: ${e.message}. Trying custom fallback parameters...")
             try {
                 // Programmatic fallback parameter definition using BuildConfig
                 val apiKey = BuildConfig.FIREBASE_API_KEY
