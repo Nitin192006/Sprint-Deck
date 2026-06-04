@@ -21,6 +21,7 @@ local.properties
 secrets.properties
 app/google-services.json
 google-services.json
+design.md
 
 # Android Keystores (Must NEVER be pushed to GitHub)
 debug.keystore
