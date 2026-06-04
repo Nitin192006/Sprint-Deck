@@ -1,0 +1,6 @@
+{
+  "name": "Sprint Deck",
+  "description": "A professional minimalist tracker for discovering, registering, and managing hackathons, featuring AI-powered enrichment, reminders, and deadline counters.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

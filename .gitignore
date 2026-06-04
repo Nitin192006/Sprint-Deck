@@ -1,0 +1,32 @@
+*.iml
+.gradle
+.kotlin
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+# Local env & secrets files
+.env
+.env.*
+local.properties
+secrets.properties
+
+# Android Keystores (Must NEVER be pushed to GitHub)
+debug.keystore
+debug.keystore.base64
+*.jks
+*.keystore
+
+# Built APKs/AABs
+*.apk
+*.apks
+*.aab

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "902399138399",
+    "project_id": "hackathon-tracker-6fdf5",
+    "storage_bucket": "hackathon-tracker-6fdf5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:902399138399:android:cfc728f6d93d3900d819ea",
+        "android_client_info": {
+          "package_name": "com.aistudio.sprintdeck.qvzkmr"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAS-ugjqIum1xznfu8WOC73ZagzlFQ_COU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:902399138399:android:b2559deb860cab68d819ea",
+        "android_client_info": {
+          "package_name": "com.example"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAS-ugjqIum1xznfu8WOC73ZagzlFQ_COU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

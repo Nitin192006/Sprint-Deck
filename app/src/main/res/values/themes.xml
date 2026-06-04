@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base App Theme -->
+    <style name="Theme.MyApplication" parent="android:Theme.DeviceDefault.NoActionBar" />
+
+    <!-- Clear, highly visible styles for system level date and time picker dialogs -->
+    <style name="MyDatePickerTheme" parent="android:Theme.DeviceDefault.Light.Dialog">
+        <item name="android:colorAccent">#1978E5</item> <!-- Primary blue color -->
+        <item name="android:textColorPrimary">#0F172A</item> <!-- Dark slate text color -->
+        <item name="android:textColorSecondary">#475569</item> <!-- Medium gray text -->
+        <item name="android:windowBackground">@android:color/white</item>
+        <item name="android:textColorHighlight">#EFF6FF</item>
+        <item name="android:textColorLink">#1978E5</item>
+    </style>
+
+    <style name="MyDatePickerThemeDark" parent="android:Theme.DeviceDefault.Dialog">
+        <item name="android:colorAccent">#778DA9</item> <!-- Light steel blue highlight -->
+        <item name="android:textColorPrimary">#E0E1DD</item> <!-- Off-white text -->
+        <item name="android:textColorSecondary">#778DA9</item>
+        <item name="android:textColorHighlight">#1B263B</item>
+        <item name="android:textColorLink">#778DA9</item>
+    </style>
+
+    <style name="MyDatePickerThemeMint" parent="android:Theme.DeviceDefault.Light.Dialog">
+        <item name="android:colorAccent">#284B63</item> <!-- Deep forest teal -->
+        <item name="android:textColorPrimary">#153243</item>
+        <item name="android:textColorSecondary">#B4B8AB</item>
+        <item name="android:windowBackground">@android:color/white</item>
+        <item name="android:textColorHighlight">#EEF0EB</item>
+        <item name="android:textColorLink">#284B63</item>
+    </style>
+
+    <style name="MyDatePickerThemePastel" parent="android:Theme.DeviceDefault.Light.Dialog">
+        <item name="android:colorAccent">#7E22CE</item> <!-- Sweet orchid/violet theme color -->
+        <item name="android:textColorPrimary">#7E22CE</item>
+        <item name="android:textColorSecondary">#9333EA</item>
+        <item name="android:windowBackground">@android:color/white</item>
+        <item name="android:textColorHighlight">#F3E8FF</item>
+        <item name="android:textColorLink">#7E22CE</item>
+    </style>
+</resources>

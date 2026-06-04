@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <group
+        android:translateX="21"
+        android:translateY="21">
+
+        <!-- Base Card Stack (Maintaining the 'Deck' identity) -->
+        <path
+            android:fillColor="#31394D"
+            android:pathData="M 16,24 h 30 a 4,4 0 0 1 4,4 v 20 a 4,4 0 0 1 -4,4 h -30 a 4,4 0 0 1 -4,-4 v -20 a 4,4 0 0 1 4,-4 z" />
+
+        <path
+            android:fillColor="#4B5563"
+            android:pathData="M 16,18 h 30 a 4,4 0 0 1 4,4 v 20 a 4,4 0 0 1 -4,4 h -30 a 4,4 0 0 1 -4,-4 v -20 a 4,4 0 0 1 4,-4 z" />
+
+        <!-- Top "Active" Card -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M 16,12 h 30 a 4,4 0 0 1 4,4 v 22 a 4,4 0 0 1 -4,4 h -30 a 4,4 0 0 1 -4,-4 v -22 a 4,4 0 0 1 4,-4 z" />
+
+        <!-- Calendar Motif: Grid lines on the card face -->
+        <path
+            android:fillColor="#22D3EE"
+            android:pathData="M 17,18 h 2 a 1,1 0 0 1 1,1 v 2 a 1,1 0 0 1 -1,1 h -2 a 1,1 0 0 1 -1,-1 v -2 a 1,1 0 0 1 1,-1 z" />
+        <path
+            android:fillColor="#CBD5E1"
+            android:pathData="M 23,18 h 2 a 1,1 0 0 1 1,1 v 2 a 1,1 0 0 1 -1,1 h -2 a 1,1 0 0 1 -1,-1 v -2 a 1,1 0 0 1 1,-1 z" />
+        <path
+            android:fillColor="#CBD5E1"
+            android:pathData="M 29,18 h 2 a 1,1 0 0 1 1,1 v 2 a 1,1 0 0 1 -1,1 h -2 a 1,1 0 0 1 -1,-1 v -2 a 1,1 0 0 1 1,-1 z" />
+
+        <path
+            android:fillColor="#CBD5E1"
+            android:pathData="M 17,24 h 2 a 1,1 0 0 1 1,1 v 2 a 1,1 0 0 1 -1,1 h -2 a 1,1 0 0 1 -1,-1 v -2 a 1,1 0 0 1 1,-1 z" />
+        <path
+            android:fillColor="#22D3EE"
+            android:pathData="M 23,24 h 2 a 1,1 0 0 1 1,1 v 2 a 1,1 0 0 1 -1,1 h -2 a 1,1 0 0 1 -1,-1 v -2 a 1,1 0 0 1 1,-1 z" />
+        <path
+            android:fillColor="#CBD5E1"
+            android:pathData="M 29,24 h 2 a 1,1 0 0 1 1,1 v 2 a 1,1 0 0 1 -1,1 h -2 a 1,1 0 0 1 -1,-1 v -2 a 1,1 0 0 1 1,-1 z" />
+
+        <!-- Clock/Time Symbol: Integrated into the 'sprint' flow -->
+        <path
+            android:fillColor="#22D3EE"
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="1.5"
+            android:pathData="M 42,27 a 7,7 0 1 0 0,14 a 7,7 0 1 0 0,-14 z" />
+        <path
+            android:strokeColor="#0F172A"
+            android:strokeWidth="1.5"
+            android:strokeLineCap="round"
+            android:pathData="M42,30 v4 l3,2" />
+
+        <!-- Student Motif: Minimalist graduation cap tassel/accent -->
+        <path
+            android:fillColor="#22D3EE"
+            android:fillAlpha="0.4"
+            android:pathData="M12,12 l6,-4 l6,4 l-6,4 Z" />
+
+        <!-- Energetic Sprint Lines (Motion) -->
+        <path
+            android:fillColor="#22D3EE"
+            android:pathData="M 53.5,18 h 7 a 1.5,1.5 0 0 1 0,3 h -7 a 1.5,1.5 0 0 1 0,-3 z" />
+        <path
+            android:fillColor="#22D3EE"
+            android:fillAlpha="0.8"
+            android:pathData="M 53.5,26 h 11 a 1.5,1.5 0 0 1 0,3 h -11 a 1.5,1.5 0 0 1 0,-3 z" />
+        <path
+            android:fillColor="#22D3EE"
+            android:fillAlpha="0.6"
+            android:pathData="M 53.5,34 h 5 a 1.5,1.5 0 0 1 0,3 h -5 a 1.5,1.5 0 0 1 0,-3 z" />
+
+        <!-- Subtle Forward Motion -->
+        <path
+            android:fillColor="#94A3B8"
+            android:pathData="M46,24 l3,2 l-3,2 Z" />
+
+    </group>
+
+</vector>
