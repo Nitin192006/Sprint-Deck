@@ -112,18 +112,30 @@ object GeminiRateLimiter {
 }
 
 object GeminiService {
-    suspend fun extractHackathonsWithAI(promptInput: String): List<Hackathon>? {
+    fun isApiConfigured(context: android.content.Context): Boolean {
+        val prefs = context.getSharedPreferences("hackathon_tracker_prefs", android.content.Context.MODE_PRIVATE)
+        val customApiKey = prefs.getString("custom_gemini_api_key", "") ?: ""
+        val customProxyUrl = prefs.getString("custom_gemini_proxy_url", "") ?: ""
+        val isUsingProxy = customProxyUrl.isNotEmpty() && customProxyUrl.startsWith("http") && customProxyUrl != "placeholder"
+        return customApiKey.trim().isNotEmpty() || isUsingProxy
+    }
+
+    suspend fun extractHackathonsWithAI(context: android.content.Context, promptInput: String): List<Hackathon>? {
         if (!GeminiRateLimiter.checkRateLimit()) {
             val seconds = GeminiRateLimiter.getSecondsToWait()
             throw IllegalStateException("API query rate limit reached. Please wait $seconds seconds before searching again to ensure api stability.")
         }
 
-        val proxyUrl = try { com.example.BuildConfig.GEMINI_PROXY_URL } catch (e: Exception) { "" }
-        val isUsingProxy = proxyUrl.isNotEmpty() && proxyUrl.startsWith("http")
+        val prefs = context.getSharedPreferences("hackathon_tracker_prefs", android.content.Context.MODE_PRIVATE)
+        val customApiKey = prefs.getString("custom_gemini_api_key", "") ?: ""
+        val customProxyUrl = prefs.getString("custom_gemini_proxy_url", "") ?: ""
+        val isUsingProxy = customProxyUrl.isNotEmpty() && customProxyUrl.startsWith("http") && customProxyUrl != "placeholder"
+        val proxyUrl = customProxyUrl
 
-        val apiKey = com.example.BuildConfig.GEMINI_API_KEY
+        val apiKey = customApiKey.trim()
+        
         if (!isUsingProxy && apiKey.isEmpty()) {
-            throw IllegalStateException("Either Gemini API key or Gemini Proxy URL must be specified.")
+            throw IllegalStateException("Gemini API Key is missing. Please configure your custom Gemini API Key in the Settings menu or on the first-use setup screen.")
         }
         
         val systemPrompt = """

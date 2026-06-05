@@ -361,7 +361,7 @@ class HackathonViewModel(application: Application) : AndroidViewModel(applicatio
         _isLoading.value = true
         _aiStatus.value = "Connecting to Gemini 3.5 Flash Model..."
         return try {
-            val newHackathons = GeminiService.extractHackathonsWithAI(inputIdea)
+            val newHackathons = GeminiService.extractHackathonsWithAI(getApplication(), inputIdea)
             if (!newHackathons.isNullOrEmpty()) {
                 var addedCount = 0
                 for (h in newHackathons) {

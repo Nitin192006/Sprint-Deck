@@ -56,20 +56,27 @@ Sprint Deck is built with modern Android development guidelines:
 
 ---
 
-## 🔑 Environment Configuration
+## 🔑 Gemini AI & Environment Configuration
 
-Sprint Deck uses secure environment injection (via the **Secrets Gradle Plugin**). To enable integrations, set up your keys:
+Sprint Deck uses secure client-side storage to enable AI integrations without risking API key exposure in shared builds.
 
+### 🧠 Configure Gemini AI API Key (In-App)
+When first using the application or inside **Settings > Secure API Credentials**, you can enter your own Google Gemini API key:
+- **🔒 Secure Local-Only Storage**: All entered API keys are saved directly into your device's private `SharedPreferences` sandbox. They are **never** synced to Firebase, committed to Git, or uploaded to any cloud database.
+- **✨ Get Your Free Key**:
+  1. Go to [Google AI Studio](https://aistudio.google.com/)
+  2. Click **Get API key** and create a key in a new context.
+  3. Copy/paste the key directly into the application's setup overlay or settings panel.
+
+### ☁️ Environment Injection (Optional Cloud/Build Configuration)
+For customized distributions or cloud synchronization:
 1. Copy `.env.example` to `.env` in the root of your workspace:
    ```bash
    cp .env.example .env
    ```
-2. Insert your specific keys:
+2. Set up your Firebase credentials under `.env`:
    ```properties
-   # Gemini API Key (Obtained from Google AI Studio)
-   GEMINI_API_KEY=your_actual_gemini_api_key_here
-
-   # Firebase API Key (Optional)
+   # Firebase Database configuration (Optional)
    FIREBASE_API_KEY=your_optional_firebase_sync_key
    ```
 

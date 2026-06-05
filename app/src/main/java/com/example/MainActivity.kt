@@ -779,6 +779,12 @@ fun DashboardScreen(viewModel: HackathonViewModel) {
 
     var currentView by remember { mutableStateOf("Dashboard") } // "Dashboard", "Profile", "Settings", "About"
 
+    var showApiKeySetupOverlay by remember {
+        mutableStateOf(prefs.getString("custom_gemini_api_key", "").isNullOrEmpty())
+    }
+
+    var showMissingApiKeyDialog by remember { mutableStateOf(false) }
+
     // Computes alerts dynamically
     val alertHackathons = remember(hackathons) {
         hackathons.filter { it.isIncomingAlert }
@@ -1058,7 +1064,8 @@ fun DashboardScreen(viewModel: HackathonViewModel) {
                                 showAlertsModal = showAlertsModal,
                                 alertHackathons = alertHackathons,
                                 onAlertModalClose = { showAlertsModal = false },
-                                onAddSprintRequested = { showAddSprintDialog = true }
+                                onAddSprintRequested = { showAddSprintDialog = true },
+                                onMissingApiKey = { showMissingApiKeyDialog = true }
                             )
                         }
                         "Profile" -> {
@@ -1089,6 +1096,171 @@ fun DashboardScreen(viewModel: HackathonViewModel) {
             }
         )
     }
+
+    if (showMissingApiKeyDialog) {
+        AlertDialog(
+            onDismissRequest = { showMissingApiKeyDialog = false },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.VpnKey,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("API Key Required")
+                }
+            },
+            text = {
+                Text("You haven't added a Gemini API key yet. Please add an API key first to unlock AI-powered schedule generation and sprint discovery.")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showMissingApiKeyDialog = false
+                        showApiKeySetupOverlay = true
+                    },
+                    modifier = Modifier.testTag("dialog_missing_key_add_btn")
+                ) {
+                    Text("Add Key Now")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick = { showMissingApiKeyDialog = false },
+                    modifier = Modifier.testTag("dialog_missing_key_cancel_btn")
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    if (showApiKeySetupOverlay) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.85f))
+                .pointerInput(Unit) {} // prohibit any touch behind that
+                .testTag("api_key_setup_overlay"),
+            contentAlignment = Alignment.Center
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .padding(24.dp)
+                    .testTag("api_key_setup_card"),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.VpnKey,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(48.dp)
+                    )
+
+                    Text(
+                        text = "Set Up Gemini AI Key",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Text(
+                        text = "To allow the hackathon tracker to perform AI-powered task breakdown and topic suggestions, please provide your own Gemini API Key.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = "How to get one:",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            Text(
+                                text = "1. Go to Google AI Studio: aistudio.google.com\n" +
+                                       "2. Click \"Get API key\"\n" +
+                                       "3. Create and copy your key, and paste it below.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    }
+
+                    var apiKeyInput by remember { mutableStateOf("") }
+
+                    OutlinedTextField(
+                        value = apiKeyInput,
+                        onValueChange = { apiKeyInput = it },
+                        label = { Text("Paste your Gemini API Key") },
+                        placeholder = { Text("AIzaSy...") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth().testTag("setup_api_key_input")
+                    )
+
+                    Text(
+                        text = "🔒 Secured Locally: Your key is stored locally on this physical device's secure SharedPreferences. It is never uploaded to any cloud, database, or server.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondary,
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Medium
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Button(
+                            onClick = {
+                                showApiKeySetupOverlay = false
+                            },
+                            colors = ButtonDefaults.textButtonColors(),
+                            modifier = Modifier.weight(1f).testTag("setup_skip_btn")
+                        ) {
+                            Text("Skip")
+                        }
+
+                        Button(
+                            onClick = {
+                                if (apiKeyInput.trim().isNotEmpty()) {
+                                    prefs.edit().putString("custom_gemini_api_key", apiKeyInput.trim()).apply()
+                                    showApiKeySetupOverlay = false
+                                    Toast.makeText(context, "API Key configured successfully!", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(context, "Please enter a key, or click Skip.", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            modifier = Modifier.weight(1.5f).testTag("setup_save_btn")
+                        ) {
+                            Text("Save Key")
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -1102,7 +1274,8 @@ fun DashboardBodyContent(
     showAlertsModal: Boolean,
     alertHackathons: List<Hackathon>,
     onAlertModalClose: () -> Unit,
-    onAddSprintRequested: () -> Unit
+    onAddSprintRequested: () -> Unit,
+    onMissingApiKey: () -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -1196,7 +1369,7 @@ fun DashboardBodyContent(
                     .background(MaterialTheme.colorScheme.background)
             ) {
                 if (activeTab == 0) {
-                    FindSprintsTab(viewModel = viewModel, list = hackathons)
+                    FindSprintsTab(viewModel = viewModel, list = hackathons, onMissingApiKey = onMissingApiKey)
                 } else {
                     MySprintsTab(viewModel = viewModel, list = hackathons)
                 }
@@ -1770,6 +1943,81 @@ fun SettingsViewScreen(
                 }
             }
         }
+
+        // SECURE API CREDENTIALS
+        Text(
+            text = "SECURE API CREDENTIALS",
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold
+        )
+
+        Card(
+            modifier = Modifier.fillMaxWidth().testTag("settings_api_credential_card"),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = "Configure custom Gemini API credentials. Entering custom credentials here allows you to distribute or run this APK safely. All calls will use your locally saved settings.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                var customApiKey by remember { mutableStateOf(prefs.getString("custom_gemini_api_key", "") ?: "") }
+                var customProxyUrl by remember { mutableStateOf(prefs.getString("custom_gemini_proxy_url", "") ?: "") }
+
+                OutlinedTextField(
+                    value = customApiKey,
+                    onValueChange = { customApiKey = it },
+                    label = { Text("Custom Gemini API Key") },
+                    placeholder = { Text("AIzaSy...") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth().testTag("input_custom_gemini_api_key"),
+                    leadingIcon = { Icon(Icons.Default.VpnKey, contentDescription = null) }
+                )
+
+                OutlinedTextField(
+                    value = customProxyUrl,
+                    onValueChange = { customProxyUrl = it },
+                    label = { Text("Custom Gemini Proxy URL (Optional)") },
+                    placeholder = { Text("https://your-proxy-domain.cfworkers.dev/") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth().testTag("input_custom_gemini_proxy_url"),
+                    leadingIcon = { Icon(Icons.Default.Link, contentDescription = null) }
+                )
+
+                Button(
+                    onClick = {
+                        prefs.edit().apply {
+                            putString("custom_gemini_api_key", customApiKey.trim())
+                            putString("custom_gemini_proxy_url", customProxyUrl.trim())
+                        }.apply()
+                        Toast.makeText(context, "API Credentials updated successfully!", Toast.LENGTH_SHORT).show()
+                    },
+                    modifier = Modifier.fillMaxWidth().testTag("btn_save_api_credentials")
+                ) {
+                    Icon(Icons.Default.Lock, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Save API Credentials")
+                }
+
+                if (customApiKey.isNotEmpty() || customProxyUrl.isNotEmpty()) {
+                    Text(
+                        text = "✓ App is configured to use locally-saved custom credentials on this device.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF10B981),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -2108,7 +2356,7 @@ fun AddCustomSprintDialog(
 // --- TAB SUB-PANEL 1: FIND HACKATHONS (DISCOVERY DECK WITH FILTERS & AI OPTION) ---
 
 @Composable
-fun FindSprintsTab(viewModel: HackathonViewModel, list: List<Hackathon>) {
+fun FindSprintsTab(viewModel: HackathonViewModel, list: List<Hackathon>, onMissingApiKey: () -> Unit) {
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val selectedDomain by viewModel.selectedDomain.collectAsStateWithLifecycle()
     val selectedTeamSize by viewModel.selectedTeamSize.collectAsStateWithLifecycle()
@@ -2300,8 +2548,12 @@ fun FindSprintsTab(viewModel: HackathonViewModel, list: List<Hackathon>) {
                         Button(
                             onClick = {
                                 if (userIdeaDraft.isNotBlank()) {
-                                    viewModel.enrichWithAI(userIdeaDraft)
-                                    userIdeaDraft = ""
+                                    if (!com.example.data.GeminiService.isApiConfigured(context)) {
+                                        onMissingApiKey()
+                                    } else {
+                                        viewModel.enrichWithAI(userIdeaDraft)
+                                        userIdeaDraft = ""
+                                    }
                                 }
                             },
                             enabled = userIdeaDraft.isNotBlank(),
@@ -2410,20 +2662,24 @@ fun FindSprintsTab(viewModel: HackathonViewModel, list: List<Hackathon>) {
                         } else {
                             Button(
                                 onClick = {
-                                    isGenLoading = true
-                                    val domainPrompt = if (selectedDomain != "All") {
-                                        "upcoming high prizes hackathons in $selectedDomain domain"
+                                    if (!com.example.data.GeminiService.isApiConfigured(context)) {
+                                        onMissingApiKey()
                                     } else {
-                                        "diverse global upcoming software developer hackathons"
-                                    }
-                                    scope.launch {
-                                        val added = viewModel.enrichWithAISuspended(domainPrompt)
-                                        isGenLoading = false
-                                        if (added > 0) {
-                                            visibleCount += added
-                                            Toast.makeText(context, "$added fresh opportunities loaded live!", Toast.LENGTH_SHORT).show()
+                                        isGenLoading = true
+                                        val domainPrompt = if (selectedDomain != "All") {
+                                            "upcoming high prizes hackathons in $selectedDomain domain"
                                         } else {
-                                            Toast.makeText(context, "No additional opportunities found model-side. Try describing specific criteria in prompt input above!", Toast.LENGTH_LONG).show()
+                                            "diverse global upcoming software developer hackathons"
+                                        }
+                                        scope.launch {
+                                            val added = viewModel.enrichWithAISuspended(domainPrompt)
+                                            isGenLoading = false
+                                            if (added > 0) {
+                                                visibleCount += added
+                                                Toast.makeText(context, "$added fresh opportunities loaded live!", Toast.LENGTH_SHORT).show()
+                                            } else {
+                                                Toast.makeText(context, "No additional opportunities found model-side. Try describing specific criteria in prompt input above!", Toast.LENGTH_LONG).show()
+                                            }
                                         }
                                     }
                                 },
