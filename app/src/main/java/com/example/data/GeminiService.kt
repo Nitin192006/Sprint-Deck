@@ -54,6 +54,12 @@ interface GeminiApiService {
         @Query("key") apiKey: String,
         @Body request: GeminiRequest
     ): GeminiResponse
+
+    @POST
+    suspend fun generateContentWithProxy(
+        @retrofit2.http.Url url: String,
+        @Body request: GeminiRequest
+    ): GeminiResponse
 }
 
 object RetrofitClient {
@@ -112,9 +118,12 @@ object GeminiService {
             throw IllegalStateException("API query rate limit reached. Please wait $seconds seconds before searching again to ensure api stability.")
         }
 
+        val proxyUrl = try { com.example.BuildConfig.GEMINI_PROXY_URL } catch (e: Exception) { "" }
+        val isUsingProxy = proxyUrl.isNotEmpty() && proxyUrl.startsWith("http")
+
         val apiKey = com.example.BuildConfig.GEMINI_API_KEY
-        if (apiKey.isEmpty()) {
-            throw IllegalStateException("Gemini API key is empty.")
+        if (!isUsingProxy && apiKey.isEmpty()) {
+            throw IllegalStateException("Either Gemini API key or Gemini Proxy URL must be specified.")
         }
         
         val systemPrompt = """
@@ -158,7 +167,11 @@ object GeminiService {
         )
 
         return try {
-            val response = RetrofitClient.geminiService.generateContent(apiKey, request)
+            val response = if (isUsingProxy) {
+                RetrofitClient.geminiService.generateContentWithProxy(proxyUrl, request)
+            } else {
+                RetrofitClient.geminiService.generateContent(apiKey, request)
+            }
             val text = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
             if (text != null) {
                 val cleanedText = text.trim()
