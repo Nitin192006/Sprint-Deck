@@ -49,6 +49,8 @@ import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
@@ -2363,6 +2365,8 @@ fun FindSprintsTab(viewModel: HackathonViewModel, list: List<Hackathon>, onMissi
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
     val scope = rememberCoroutineScope()
     var userIdeaDraft by remember { mutableStateOf("") }
     var visibleCount by remember(searchQuery, selectedDomain, selectedTeamSize) { mutableStateOf(6) }
@@ -2548,6 +2552,8 @@ fun FindSprintsTab(viewModel: HackathonViewModel, list: List<Hackathon>, onMissi
                         Button(
                             onClick = {
                                 if (userIdeaDraft.isNotBlank()) {
+                                    keyboardController?.hide()
+                                    focusManager.clearFocus()
                                     if (!com.example.data.GeminiService.isApiConfigured(context)) {
                                         onMissingApiKey()
                                     } else {
@@ -2662,6 +2668,8 @@ fun FindSprintsTab(viewModel: HackathonViewModel, list: List<Hackathon>, onMissi
                         } else {
                             Button(
                                 onClick = {
+                                    keyboardController?.hide()
+                                    focusManager.clearFocus()
                                     if (!com.example.data.GeminiService.isApiConfigured(context)) {
                                         onMissingApiKey()
                                     } else {

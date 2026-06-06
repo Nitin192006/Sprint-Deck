@@ -187,15 +187,18 @@ object GeminiService {
             val text = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
             if (text != null) {
                 val cleanedText = text.trim()
-                    .removePrefix("```json")
-                    .removePrefix("```")
-                    .removeSuffix("```")
-                    .trim()
+                val jsonStart = cleanedText.indexOf('{')
+                val jsonEnd = cleanedText.lastIndexOf('}')
+                val jsonToParse = if (jsonStart != -1 && jsonEnd != -1 && jsonEnd > jsonStart) {
+                    cleanedText.substring(jsonStart, jsonEnd + 1)
+                } else {
+                    cleanedText
+                }
 
                 // Parse JSON list using Moshi helper
                 val moshi = Moshi.Builder().addLast(KotlinJsonAdapterFactory()).build()
                 val adapter = moshi.adapter(Map::class.java)
-                val map = adapter.fromJson(cleanedText) ?: throw Exception("Invalid JSON formatting")
+                val map = adapter.fromJson(jsonToParse) ?: throw Exception("Invalid JSON formatting")
                 
                 val hackathonsList = map["hackathons"] as? List<*> ?: emptyList<Any>()
                 val resultList = mutableListOf<Hackathon>()
@@ -237,7 +240,7 @@ object GeminiService {
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            null
+            throw e
         }
     }
 }
