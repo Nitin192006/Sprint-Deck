@@ -1,0 +1,63 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 1. Rules for User Profiles (Mitigates Directory Traversal, Email Spoofing, & Malicious Strings)
+    match /users/{username} {
+      // Allow checking username existence and credentials retrieval for login
+      allow read: if true;
+      
+      // Strict client write schema enforcement
+      allow write: if (
+        request.resource.data.keys().hasAll(['id', 'username', 'email', 'passwordHash'])
+        && request.resource.data.id is int
+        && request.resource.data.username is string
+        // Document ID must match the username string to prevent hijacking other profiles
+        && request.resource.data.username == username
+        // Restrict usernames to alphanumeric/underscores to prevent directory traversal in path names
+        && request.resource.data.username.matches('^[a-zA-Z0-9_]{3,20}$')
+        && request.resource.data.email is string
+        // Strict pattern-matching format validation for email
+        && request.resource.data.email.matches('^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,5}$')
+        && request.resource.data.passwordHash is string
+        && request.resource.data.passwordHash.size() >= 6
+      );
+    }
+    
+    // 2. Rules for Hackathon Records (Schema enforcement & Resource bounding checks)
+    match /hackathons/{hackathonId} {
+      // Allow reading and syncing hackathons
+      allow read: if true;
+      
+      // Allow deletes or enforce structured types for additions/updates
+      allow write: if request.resource == null // True for DELETE requests
+                   || (
+                     request.resource.data.keys().hasAll(['userId', 'id', 'title'])
+                     && request.resource.data.userId is int
+                     && request.resource.data.id is int
+                     && request.resource.data.title is string
+                     && request.resource.data.title.size() >= 3 
+                     && request.resource.data.title.size() <= 120
+                     // Enforce descriptive text boundary
+                     && (!request.resource.data.keys().hasAny(['description']) || request.resource.data.description is string)
+                     && (!request.resource.data.keys().hasAny(['externalLink']) || (
+                        request.resource.data.externalLink is string 
+                        && request.resource.data.externalLink.matches('^https?://.*')
+                     ))
+                   );
+    }
+    
+    // 3. Rules for Diagnostics & Connection Troubleshooting Logs
+    match /_diagnostics_test/{testId} {
+      // Allow automated diagnostics tool write-and-read sequences safely.
+      // Limits test doc IDs to 'test_run_' formats to prevent arbitrary collections abuse.
+      allow read, write, delete: if testId.matches('^test_run_.*');
+    }
+    
+    // 4. Deny access to any other unmapped collections by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

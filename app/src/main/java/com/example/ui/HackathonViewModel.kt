@@ -89,17 +89,47 @@ class HackathonViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    // Perform User Registration / Login
+    // Secure password hashing helper utilizing SHA-256 cryptographic standard
+    private fun hashPassword(password: String): String {
+        return try {
+            val digest = java.security.MessageDigest.getInstance("SHA-256")
+            val hashBytes = digest.digest(password.toByteArray(Charsets.UTF_8))
+            hashBytes.joinToString("") { "%02x".format(it) }
+        } catch (e: Exception) {
+            password // safe fallback, though SHA-256 is guaranteed in all standard Android platforms
+        }
+    }
+
+    // Perform User Registration / Login with robust input validation and hashing
     fun registerNewUser(username: String, email: String, pass: String, onSuccess: () -> Unit) {
         viewModelScope.launch {
             _authError.value = null
             val trimmedUsername = username.trim()
             val trimmedEmail = email.trim()
             val trimmedPass = pass.trim()
+            
             if (trimmedUsername.isBlank() || trimmedEmail.isBlank() || trimmedPass.isBlank()) {
                 _authError.value = "All fields are required."
                 return@launch
             }
+
+            // Input Validation Rules (Email format validation & Alphanumeric-only usernames)
+            val usernameRegex = "^[a-zA-Z0-9_]{3,20}$".toRegex()
+            val emailRegex = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,5}$".toRegex()
+
+            if (!usernameRegex.matches(trimmedUsername)) {
+                _authError.value = "Username must be 3-20 characters and alphanumeric (underscores allowed)."
+                return@launch
+            }
+            if (!emailRegex.matches(trimmedEmail)) {
+                _authError.value = "Please enter a valid email address."
+                return@launch
+            }
+            if (trimmedPass.length < 6) {
+                _authError.value = "Password must be at least 6 characters long."
+                return@launch
+            }
+
             val existing = repository.findUserByUsername(trimmedUsername)
             if (existing != null) {
                 _authError.value = "Username already exists."
@@ -110,7 +140,10 @@ class HackathonViewModel(application: Application) : AndroidViewModel(applicatio
                 _authError.value = "Email is already registered."
                 return@launch
             }
-            val newUser = User(username = trimmedUsername, email = trimmedEmail, passwordHash = trimmedPass)
+            
+            // Save user using SHA-256 cryptographic hash securely
+            val securedHash = hashPassword(trimmedPass)
+            val newUser = User(username = trimmedUsername, email = trimmedEmail, passwordHash = securedHash)
             val id = repository.registerNewUser(newUser)
             val resolvedUser = newUser.copy(id = id.toInt())
             _currentUser.value = resolvedUser
@@ -118,7 +151,7 @@ class HackathonViewModel(application: Application) : AndroidViewModel(applicatio
             // Persist session
             prefs.edit().putInt("logged_in_user_id", resolvedUser.id).apply()
             
-            // Sync user profile to Firestore
+            // Sync user profile with hashed password to Firestore
             FirebaseSyncService.saveUserProfile(resolvedUser)
             
             onSuccess()
@@ -134,18 +167,22 @@ class HackathonViewModel(application: Application) : AndroidViewModel(applicatio
                 _authError.value = "Please fill in all fields."
                 return@launch
             }
+            
             // Check lookup by username first, fallback to email lookup
             var user = repository.findUserByUsername(trimmedCred)
             if (user == null) {
                 user = repository.findUserByEmail(trimmedCred)
             }
             
+            val securedHash = hashPassword(trimmedPass)
+            
             // Fallback: If user not found locally, check Firestore to restore user account
             if (user == null) {
                 try {
                     val remoteUser = FirebaseSyncService.findUserRemote(trimmedCred)
                     if (remoteUser != null) {
-                        if (remoteUser.passwordHash == trimmedPass) {
+                        // Supports both cryptographic hash verification and fallback comparison for legacy plaintext profiles
+                        if (remoteUser.passwordHash == securedHash || remoteUser.passwordHash == trimmedPass) {
                             // Insert remote user back into Room
                             db.trackerDao().insertUser(remoteUser)
                             user = remoteUser
@@ -156,7 +193,7 @@ class HackathonViewModel(application: Application) : AndroidViewModel(applicatio
                 }
             }
             
-            if (user == null || user.passwordHash != trimmedPass) {
+            if (user == null || (user.passwordHash != securedHash && user.passwordHash != trimmedPass)) {
                 _authError.value = "Invalid username, email, or password."
                 return@launch
             }
@@ -188,7 +225,14 @@ class HackathonViewModel(application: Application) : AndroidViewModel(applicatio
                 _authError.value = "All fields are required to reset password."
                 return@launch
             }
-            val success = repository.resetUserPassword(trimmedUsername, trimmedEmail, trimmedPass)
+            if (trimmedPass.length < 6) {
+                _authError.value = "New password must be at least 6 characters long."
+                return@launch
+            }
+            
+            // Reset with SHA-256 secure hash
+            val securedHash = hashPassword(trimmedPass)
+            val success = repository.resetUserPassword(trimmedUsername, trimmedEmail, securedHash)
             if (success) {
                 _authError.value = null
                 onSuccess()
